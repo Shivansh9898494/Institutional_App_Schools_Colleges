@@ -1,0 +1,54 @@
+name: Android CI on Develop Branch
+
+# 1. Trigger Configuration (The core of your requirement)
+on:
+  push:
+    # 🎯 This line ensures the workflow only runs on commits pushed to 'develop'
+    branches:
+      - develop
+  pull_request:
+    # Also runs when a pull request is opened/updated against 'develop'
+    branches:
+      - develop
+
+# 2. Jobs Configuration
+jobs:
+  build:
+    # The virtual environment where the build will run
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the correct Java environment
+      # Android Gradle Plugin (AGP) 8.0+ requires JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Step 3: Grant execution permission to the Gradle wrapper
+      - name: Grant Execute Permission to gradlew
+        run: chmod +x gradlew
+
+      # Step 4: Run the Android Debug Build
+      - name: Build Debug APK
+        # The './gradlew assembleDebug' command performs the actual build
+        run: ./gradlew assembleDebug
+
+          # Step 5 (Optional): Run Unit Tests
+          # Uncomment this if you have unit tests configured!
+          # - name: Run Unit Tests
+          #   run: ./gradlew testDebugUnitTest
+
+      # Step 6 (Optional): Upload the resulting APK as a GitHub artifact
+      # This allows you or others to easily download the built APK from the Actions tab.
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk-for-develop
+          # Note: Adjust 'app' if your module is named differently
+          path: app/build/outputs/apk/debug/app-debug.apk
