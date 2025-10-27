@@ -1,0 +1,48 @@
+name: Android CI on Develop
+
+# 1. Trigger Configuration: This section defines WHEN the workflow should run.
+on:
+  push:
+    branches:
+      - develop # 🎯 This line ensures the workflow only runs on commits to the 'develop' branch.
+  pull_request:
+    branches:
+      - develop # Also runs on pull requests targeting 'develop'
+
+# 2. Jobs Configuration: Defines the tasks to be executed.
+jobs:
+  build:
+    # Set the runner environment (GitHub's virtual machine).
+    runs-on: ubuntu-latest
+
+    # Steps are a sequence of tasks that are executed as part of the job.
+    steps:
+      # Step 1: Checkout the repository code.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Java Development Kit (JDK) for Android development.
+      - name: Set up JDK 17 (Required by Android Gradle Plugin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      # Step 3: Set up the Android environment and cache dependencies for faster builds.
+      - name: Setup Android SDK and Cache
+        uses: android-actions/setup-android@v3
+
+      # Step 4: Run the Gradle Wrapper command to assemble the debug build.
+      - name: Build Debug APK
+        run: |
+          # Use the Gradle wrapper to build the app
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      # Step 5 (Optional): Upload the resulting APK file as a GitHub artifact.
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          # 🚨 Adjust this path if your build output directory is different.
+          path: app/build/outputs/apk/debug/app-debug.apk
